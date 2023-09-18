@@ -1,0 +1,93 @@
+[Basics of Mean Reversion Trading | Stock Trading Strategies | By Dr. Ernest Chan](https://www.youtube.com/watch?v=5G7YdjnRvVI)
+
+- Long short portfolio
+  - ranking based on 'factors'
+- Factor models
+  - factor is like another word for criteria
+  - signals depend on expected return from a linear combination of fundamental or statistical factors
+  - can be any type of factor
+  - can even be complicated factors from PCA
+  - fundamental factors from financial statements
+- Types of Mean Reversion strategies
+  - Pairs Trading
+  - Portfolio Trading
+  - Index Arbitrage
+  - Long-Short Portfolio Models
+- Stationarity
+  - forms the basis of mean reverting strategy
+  - it means that a time series do not wander off into infinity as time goes on
+  - random walk is not staionarity
+  - if a asset price is stationary, we can use a simple mean-reverting strategy in which we buy low and sell high
+- How to test for Stationarity: ADF Test
+  - the change of the price series in the next period of tiem, is proportional to difference between the mean price and the current price
+  - if the price is below the mean in the current period, it is assumed to go up. If it is above the mean, it is assumed the price will go down
+  - it will revert back to the mean only if there is a proportionality constant that is not zero, and is negative
+  - ADF tests if the regression coefficient between the next period price change and the current difference between the mean and the price.
+  - ADF tests whether we can reject the null hypothesis that the proportionality constant is zero
+  - it is a statistical signifigance test of the regression coefficient to seeo if it is zero or not
+  - if you run the test on most time series, you will seldomly be able to reject the null hypothesis, as most are not stationary
+- Cointegration
+  - We can construct a portfolio and price series where it is stationary.
+  - you just need to find two instruments (aka stocks)
+  - you will find one that you go long on, and one that you go short on
+  - if you test this portfolio of two instruments you can sometimes find that they are stationary
+  - the price of the portfolio represents the net market value of the portfolio
+  - we can apply the ADF test to see if the portfolio is stationary
+  - if it is stationary we can say that the stocks are cointegrated
+  - example of a cointegrated portfolio:
+    - Long 1 share of GLD
+    - Short 1.63 shares of GDX
+- Cointegration:
+  - stationary portfolio, all the stocks together create a stationary portfolio
+  - we buy when MV is low, Sell when MV is high
+  - trade it like an ETF
+- Cointegration is NOT Correlation:
+  - with correlation we are concerned with whether daily returns of 2 stocks are in the same (or maybe even opposite) direction
+  - with cointegration we are concerned with whether 2 price series diverge (pull apart) over a long term.
+  - Coke and Pepsi are highly correlated but they do not cointegrate
+    - over a long period their spread (net market value of portfolio, of long coke short pepsi or vice versa) is not mean reverting at all
+    - their spread is not stationary
+- Cointegration is Long Term and Prices
+- Correlation is Short Term and Returns
+- Types of Mean Reversion Strategies:
+  - Bollinger Bands
+    - using moving average to determine the mean
+    - Enter into a position only when price deviates by more than a standard deviation
+    - Exit when price mean reverts
+    - it has one single sliding window that compute mean and standard deviation
+    - this mean changes since it is a sliding window of moving average
+    - There is NO guarantee that the exit will be profitable, due to this sliding window
+- Transactional costs is usually one downside to mean reversion
+- in theory larger portfolios are less susceptible to random events, but incur larger transaction costs in practice
+
+[Mean Reversion Trading | Lessons From a Fund | By Dr Ernest Chan](https://www.youtube.com/watch?v=sFwyS-L-aDE)
+
+- can (hopefully) deliver consistent returns
+- but it can be tempting to overleverage them
+- highly vulnerable to Black Swan events
+- do not over leverage
+- put in stop losses only for catastrophic losses
+  - stop losses almost always decrease backtest performance
+  - we put these in place for Black Swans that we have not seen in backtest
+- beware of survivorship bias in backtesting
+- buying put options is not ideal
+- DL and DRL, have not proved well due to more parameters than available features. Models have overfit
+- prefers classification over regression, for predictions
+  - has seen regression model get both the estimate and sign (negative or positve) incorrect
+- stop loss only for catastrophy insurance
+  - want it at a pain point of like 20% of total assets
+  - prefer this strategy over something like 3 standard deviations
+- they use ML models, with over 170 params, and non-linear strategies
+
+[Integration, Cointegration, and Stationarity](https://www.youtube.com/watch?v=Pn_RiDbK82M)
+
+- Wide sense stationarity
+  - mean and standard deviations are constant, throughout an entire length of a time series
+  - stationary time series is all drawn from the same probability distribution, all with the same parameters. For Instance, lets say it is a normal distribution, it will have the same mean and variance no matter where it is.
+  - this is important because it is the underlying assumption that the statistical tests we will run are based on.
+  - For Instance, AutoRegression and Moving Average Models
+  - All the techniques assume stationarity
+  - we are fitting to a probability distribution, some underlying characteristics of the data. We want our assumptions to continue to hold into the future.
+  - if there is a shift, then our models get thrown off. We would be basing the model on a different assumption than the current reality.
+- Why Non-Stationarity is dangerous
+  - most statistical tests require data to be stationary
