@@ -72,14 +72,14 @@ def drop_stock_prices_table():
     sql_execution_wrapper(sql_query)
 
 
-def insert_df_records_to_db(df):
-    new_df = df[['Date', 'Close', 'Ticker']].copy()
+def insert_stock_records_to_db(ticker, start_date, end_date):
+    df = get_stock_prices(ticker, start_date, end_date)
 
-    new_df['sql_insert'] = new_df['Date'].dt.strftime('%Y-%m-%d')
-    new_df['sql_insert'] = '(' + round(new_df['Close'], 2).astype(str) + ',\'' + \
-        new_df['Ticker'] + '\',\'' + new_df['sql_insert'] + '\')'
+    df['sql_insert'] = df['Date'].dt.strftime('%Y-%m-%d')
+    df['sql_insert'] = '(' + round(df['Close'], 2).astype(str) + ',\'' + \
+        df['Ticker'] + '\',\'' + df['sql_insert'] + '\')'
 
-    insert_string = ',\n'.join(new_df['sql_insert'].array)
+    insert_string = ',\n'.join(df['sql_insert'].array)
     sql_query = f"""
                 INSERT INTO public.stock_prices(price, ticker, date)
                 VALUES {insert_string};
