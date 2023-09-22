@@ -25,7 +25,7 @@ def test_stock_cointegration(stock_one, stock_two):
     res = coint(stock_one, stock_two)
     p_value = res[1]
     signifigance_level = .05
-    return p_value < signifigance_level
+    return p_value < signifigance_level, res
 
 
 def adf_test(series):
@@ -36,7 +36,7 @@ def adf_test(series):
     res = adfuller(series)
     p_value = res[1]
     signifigance_level = .05
-    return p_value < signifigance_level
+    return p_value < signifigance_level, res
 
 
 def connect_with_database():
