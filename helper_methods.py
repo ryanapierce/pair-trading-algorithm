@@ -7,6 +7,7 @@ from statsmodels.tsa.stattools import adfuller, coint
 load_dotenv()
 DB_URL = os.getenv('DB_CONNECTION_STRING')
 EXPECTED_DF_LEN = 1006
+TRAINING_DATE_RANGE = ['2019-08-31', '2022-08-31']
 
 
 def get_stock_prices(ticker, start_date, end_date):

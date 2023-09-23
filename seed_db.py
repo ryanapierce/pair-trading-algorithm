@@ -1,5 +1,6 @@
+from datetime import date
 import web_scraper
-from helper_methods import EXPECTED_DF_LEN, create_stock_cointegration_table, drop_stock_cointegration_table, drop_stock_prices_table, create_stock_price_table, find_cointegrated_pairs, get_stock_prices_from_db, insert_stock_coint_pairs_to_db, insert_stock_records_to_db
+from helper_methods import EXPECTED_DF_LEN, TRAINING_DATE_RANGE, create_stock_cointegration_table, drop_stock_cointegration_table, drop_stock_prices_table, create_stock_price_table, find_cointegrated_pairs, get_stock_prices_from_db, insert_stock_coint_pairs_to_db, insert_stock_records_to_db
 import pandas as pd
 
 
@@ -25,32 +26,32 @@ def seed_stock_coint_pairs():
     drop_stock_cointegration_table()
     create_stock_cointegration_table()
 
-    df = get_stock_prices_from_db()
-    full_date_range_df = df.groupby("ticker").filter(
-        lambda x: len(x) == EXPECTED_DF_LEN)
-    prices_df = full_date_range_df.groupby("ticker")["price"]\
+    full_date_range_df = get_stock_prices_from_db().groupby("ticker").filter(
+        lambda x: len(x) == EXPECTED_DF_LEN).reset_index()
+
+    start_date = date(*[int(n) for n in TRAINING_DATE_RANGE[0].split('-')])
+    end_date = date(*[int(n) for n in TRAINING_DATE_RANGE[1].split('-')])
+    training_df = full_date_range_df[(full_date_range_df['date'] >= start_date) & (
+        full_date_range_df['date'] <= end_date)]
+
+    training_full_date_range_df = training_df.groupby("ticker").filter(
+        lambda x: len(x) == 756)
+
+    training_prices_df = training_full_date_range_df.groupby("ticker")["price"]\
         .apply(lambda x: pd.Series(x.values))\
         .unstack()\
         .reset_index()\
 
-    price_series_df = pd.DataFrame(
-        data=prices_df.iloc[:, 1:].to_numpy(
-        ).T, columns=prices_df.iloc[:, 0].to_numpy()
+    training_price_series_df = pd.DataFrame(
+        data=training_prices_df.iloc[:, 1:].to_numpy(
+        ).T, columns=training_prices_df.iloc[:, 0].to_numpy()
     )
 
     def get_stock_name_by_sector(
-        sec): return full_date_range_df[full_date_range_df['sector'] == sec]['ticker'].unique()
+        sec): return training_full_date_range_df[training_full_date_range_df['sector'] == sec]['ticker'].unique()
 
-    tech_stocks = get_stock_name_by_sector('technology')
-
-    tech_coint_pairs_set = find_cointegrated_pairs(
-        price_series_df, tech_stocks, 'technology')
-    insert_stock_coint_pairs_to_db(tech_coint_pairs_set)
-    healthcare_stocks = get_stock_name_by_sector('healthcare')
-    healthcare_coint_pairs_set = find_cointegrated_pairs(
-        price_series_df, healthcare_stocks, 'healthcare')
-    insert_stock_coint_pairs_to_db(healthcare_coint_pairs_set)
-    industrials_stocks = get_stock_name_by_sector('industrials')
-    industrials_coint_pairs_set = find_cointegrated_pairs(
-        price_series_df, industrials_stocks, 'industrials')
-    insert_stock_coint_pairs_to_db(industrials_coint_pairs_set)
+    for sector in ['technology', 'healthcare', 'industrials']:
+        sector_stocks_names = get_stock_name_by_sector(sector)
+        sector_coint_pairs_set = find_cointegrated_pairs(
+            training_price_series_df, sector_stocks_names, sector)
+        insert_stock_coint_pairs_to_db(sector_coint_pairs_set)
