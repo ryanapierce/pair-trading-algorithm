@@ -69,9 +69,57 @@ def create_stock_price_table():
     sql_execution_wrapper(sql_query)
 
 
+def drop_stock_cointegration_table():
+    sql_query = """DROP TABLE IF EXISTS stock_cointegrations;"""
+    sql_execution_wrapper(sql_query)
+
+
+def create_stock_cointegration_table():
+    sql_query = """
+                CREATE TABLE IF NOT EXISTS stock_cointegrations(
+                    id SERIAL PRIMARY KEY,
+                    stock_one VARCHAR(20) NOT NULL,
+                    stock_two VARCHAR(20) NOT NULL,
+                    pvalue FLOAT(8) NOT NULL,
+                    sector VARCHAR(20) NOT NULL                
+                );
+                """
+    sql_execution_wrapper(sql_query)
+
+
+def insert_stock_coint_pairs_to_db(stock_pairs_list):
+
+    insert_stmt = ','.join([f'(\'{stock_one}\', \'{stock_two}\', {pvalue}, \'{sector}\')'
+                            for stock_one, stock_two, pvalue, sector in stock_pairs_list])
+
+    sql_query = f"""
+                    INSERT INTO public.stock_cointegrations(stock_one, stock_two, pvalue, sector)
+                    VALUES {insert_stmt};
+                    """
+    sql_execution_wrapper(sql_query)
+
+
 def drop_stock_prices_table():
     sql_query = """DROP TABLE IF EXISTS stock_prices;"""
     sql_execution_wrapper(sql_query)
+
+
+def find_cointegrated_pairs(df, tickers_list, sector):
+    stock_set = set()
+    for t1 in tickers_list:
+        for t2 in tickers_list:
+            if t1 == t2:
+                continue
+            does_cointegrate, res = test_stock_cointegration(
+                df[t1], df[t2]
+            )
+            if does_cointegrate:
+                print(f"Stock {t1} passes cointegration test with Stock {t2}")
+
+                str_list = ','.join(
+                    [*list(sorted([t1, t2])), f'{round(res[1], 5)}', sector])
+                stock_set.add(str_list)
+    return list(map(lambda x: x.split(','), list(stock_set)))
 
 
 def insert_stock_records_to_db(ticker, sector, start_date, end_date):
@@ -96,3 +144,7 @@ def insert_stock_records_to_db(ticker, sector, start_date, end_date):
 
 def get_stock_prices_from_db():
     return pd.read_sql_query('SELECT * FROM public.stock_prices', DB_URL)
+
+
+def get_stock_coint_pairs_from_db():
+    return pd.read_sql_query('SELECT * FROM public.stock_cointegrations', DB_URL)
