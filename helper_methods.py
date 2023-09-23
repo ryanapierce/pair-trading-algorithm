@@ -83,6 +83,7 @@ def create_stock_cointegration_table():
                     stock_two VARCHAR(20) NOT NULL,
                     pvalue FLOAT(8) NOT NULL,
                     sector VARCHAR(20) NOT NULL,
+                    ratio_stationarity FLOAT(8) NOT NULL,
                     UNIQUE(stock_one, stock_two)         
                 );
                 """
@@ -91,11 +92,11 @@ def create_stock_cointegration_table():
 
 def insert_stock_coint_pairs_to_db(stock_pairs_list):
 
-    insert_stmt = ','.join([f'(\'{stock_one}\', \'{stock_two}\', {pvalue}, \'{sector}\')'
-                            for stock_one, stock_two, pvalue, sector in stock_pairs_list])
+    insert_stmt = ','.join([f'(\'{stock_one}\', \'{stock_two}\', {pvalue}, \'{sector}\',{ratio_stationarity})'
+                            for stock_one, stock_two, pvalue, sector, ratio_stationarity in stock_pairs_list])
 
     sql_query = f"""
-                    INSERT INTO public.stock_cointegrations(stock_one, stock_two, pvalue, sector)
+                    INSERT INTO public.stock_cointegrations(stock_one, stock_two, pvalue, sector, ratio_stationarity)
                     VALUES {insert_stmt};
                     """
     sql_execution_wrapper(sql_query)
@@ -118,14 +119,14 @@ def find_cointegrated_pairs(df, tickers_list, sector):
             )
             if not does_cointegrate:
                 continue
-
-            print(f"Stock {t1} passes cointegration test with Stock {t2}")
             str_stock_pair = ','.join(list(sorted([t1, t2])))
             curr_len = len(stock_set)
             stock_set.add(str_stock_pair)
             if (len(stock_set) != curr_len):
+                ratio_stationarity = adf_test(df[t1] / df[t2])[1][1]
                 coint_pair = [*list(sorted([t1, t2])),
-                              f'{round(res[1], 5)}', sector]
+                              f'{round(res[1], 5)}', sector, f'{round(ratio_stationarity, 5)}']
+                print(coint_pair)
                 pairs_list.append(coint_pair)
     return pairs_list
 

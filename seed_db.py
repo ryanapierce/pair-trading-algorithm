@@ -52,9 +52,9 @@ def seed_stock_coint_pairs():
 
     for sector in ['technology', 'healthcare', 'industrials']:
         sector_stocks_names = get_stock_name_by_sector(sector)
-        sector_coint_pairs_set = find_cointegrated_pairs(
+        sector_coint_pairs = find_cointegrated_pairs(
             training_price_series_df, sector_stocks_names, sector)
-        insert_stock_coint_pairs_to_db(sector_coint_pairs_set)
+        insert_stock_coint_pairs_to_db(sector_coint_pairs)
 
 
 seed_stock_coint_pairs()
