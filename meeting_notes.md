@@ -24,3 +24,41 @@
 - We will discuss more about how we will handle the project slides
 - Raul will try to setup a google colab env for vincent
 - Coke and Pepsi
+
+# 09/22/2023
+
+- Ryan
+
+  - updating slide deck theme
+  - working on visualizations
+  - looking for data for visualizations
+  - suggested idea for cointegrated pairs to perform early stoppage
+  - heatmap for cointegrated pairs
+
+- Vincent
+
+  - has been working on data for visualizations
+  - working on notes for adf testings
+  - researching for buy and sell signals
+  - we will the use ratio for the spread
+    - aka stock a divided by stock b
+  - Engel granger method for stationarity
+    - coint method for statsmodel uses this
+  - working on a profit function
+  - visualization of algo profit vs S&P 500
+
+- Raul
+
+  - add analysis write up for cointegration
+  - rerun cointegration
+    - by sector
+    - for cointegrated assets
+    - from those ensure the spread is stationary
+  - push those pairs into a table in the database
+  - might possibly take too long to run because of O(n^2)
+
+- next steps
+- profit/loss - Vincent
+- rerun cointegration - Raul
+- visualizations - Ryan
+- Sync Monday @8pm, Thursday @8pm
