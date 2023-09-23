@@ -55,3 +55,6 @@ def seed_stock_coint_pairs():
         sector_coint_pairs_set = find_cointegrated_pairs(
             training_price_series_df, sector_stocks_names, sector)
         insert_stock_coint_pairs_to_db(sector_coint_pairs_set)
+
+
+seed_stock_coint_pairs()

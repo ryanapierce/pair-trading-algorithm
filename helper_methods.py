@@ -82,7 +82,8 @@ def create_stock_cointegration_table():
                     stock_one VARCHAR(20) NOT NULL,
                     stock_two VARCHAR(20) NOT NULL,
                     pvalue FLOAT(8) NOT NULL,
-                    sector VARCHAR(20) NOT NULL                
+                    sector VARCHAR(20) NOT NULL,
+                    UNIQUE(stock_one, stock_two)         
                 );
                 """
     sql_execution_wrapper(sql_query)
@@ -107,6 +108,7 @@ def drop_stock_prices_table():
 
 def find_cointegrated_pairs(df, tickers_list, sector):
     stock_set = set()
+    pairs_list = []
     for t1 in tickers_list:
         for t2 in tickers_list:
             if t1 == t2:
@@ -114,13 +116,18 @@ def find_cointegrated_pairs(df, tickers_list, sector):
             does_cointegrate, res = test_stock_cointegration(
                 df[t1], df[t2]
             )
-            if does_cointegrate:
-                print(f"Stock {t1} passes cointegration test with Stock {t2}")
+            if not does_cointegrate:
+                continue
 
-                str_list = ','.join(
-                    [*list(sorted([t1, t2])), f'{round(res[1], 5)}', sector])
-                stock_set.add(str_list)
-    return list(map(lambda x: x.split(','), list(stock_set)))
+            print(f"Stock {t1} passes cointegration test with Stock {t2}")
+            str_stock_pair = ','.join(list(sorted([t1, t2])))
+            curr_len = len(stock_set)
+            stock_set.add(str_stock_pair)
+            if (len(stock_set) != curr_len):
+                coint_pair = [*list(sorted([t1, t2])),
+                              f'{round(res[1], 5)}', sector]
+                pairs_list.append(coint_pair)
+    return pairs_list
 
 
 def insert_stock_records_to_db(ticker, sector, start_date, end_date):
