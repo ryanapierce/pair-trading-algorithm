@@ -91,6 +91,8 @@ target/
 # Environments
 venv/
 venv.bak/
+.venv
+.env
 # mkdocs documentation
 /site
 # mypy

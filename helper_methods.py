@@ -7,6 +7,7 @@ from statsmodels.tsa.stattools import adfuller, coint
 load_dotenv()
 DB_URL = os.getenv('DB_CONNECTION_STRING')
 EXPECTED_DF_LEN = 1006
+TRAINING_DATE_RANGE = ['2019-08-31', '2022-08-31']
 
 
 def get_stock_prices(ticker, start_date, end_date):
@@ -69,9 +70,65 @@ def create_stock_price_table():
     sql_execution_wrapper(sql_query)
 
 
+def drop_stock_cointegration_table():
+    sql_query = """DROP TABLE IF EXISTS stock_cointegrations;"""
+    sql_execution_wrapper(sql_query)
+
+
+def create_stock_cointegration_table():
+    sql_query = """
+                CREATE TABLE IF NOT EXISTS stock_cointegrations(
+                    id SERIAL PRIMARY KEY,
+                    stock_one VARCHAR(20) NOT NULL,
+                    stock_two VARCHAR(20) NOT NULL,
+                    pvalue FLOAT(8) NOT NULL,
+                    sector VARCHAR(20) NOT NULL,
+                    ratio_stationarity FLOAT(8) NOT NULL,
+                    UNIQUE(stock_one, stock_two)         
+                );
+                """
+    sql_execution_wrapper(sql_query)
+
+
+def insert_stock_coint_pairs_to_db(stock_pairs_list):
+
+    insert_stmt = ','.join([f'(\'{stock_one}\', \'{stock_two}\', {pvalue}, \'{sector}\',{ratio_stationarity})'
+                            for stock_one, stock_two, pvalue, sector, ratio_stationarity in stock_pairs_list])
+
+    sql_query = f"""
+                    INSERT INTO public.stock_cointegrations(stock_one, stock_two, pvalue, sector, ratio_stationarity)
+                    VALUES {insert_stmt};
+                    """
+    sql_execution_wrapper(sql_query)
+
+
 def drop_stock_prices_table():
     sql_query = """DROP TABLE IF EXISTS stock_prices;"""
     sql_execution_wrapper(sql_query)
+
+
+def find_cointegrated_pairs(df, tickers_list, sector):
+    stock_set = set()
+    pairs_list = []
+    for t1 in tickers_list:
+        for t2 in tickers_list:
+            if t1 == t2:
+                continue
+            does_cointegrate, res = test_stock_cointegration(
+                df[t1], df[t2]
+            )
+            if not does_cointegrate:
+                continue
+            str_stock_pair = ','.join(list(sorted([t1, t2])))
+            curr_len = len(stock_set)
+            stock_set.add(str_stock_pair)
+            if (len(stock_set) != curr_len):
+                ratio_stationarity = adf_test(df[t1] / df[t2])[1][1]
+                coint_pair = [*list(sorted([t1, t2])),
+                              f'{round(res[1], 5)}', sector, f'{round(ratio_stationarity, 5)}']
+                print(coint_pair)
+                pairs_list.append(coint_pair)
+    return pairs_list
 
 
 def insert_stock_records_to_db(ticker, sector, start_date, end_date):
@@ -96,3 +153,7 @@ def insert_stock_records_to_db(ticker, sector, start_date, end_date):
 
 def get_stock_prices_from_db():
     return pd.read_sql_query('SELECT * FROM public.stock_prices', DB_URL)
+
+
+def get_stock_coint_pairs_from_db():
+    return pd.read_sql_query('SELECT * FROM public.stock_cointegrations', DB_URL)
