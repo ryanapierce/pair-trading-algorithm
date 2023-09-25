@@ -8,6 +8,8 @@ load_dotenv()
 DB_URL = os.getenv('DB_CONNECTION_STRING')
 EXPECTED_DF_LEN = 1006
 TRAINING_DATE_RANGE = ['2019-08-31', '2022-08-31']
+TESTING_DATE_RANGE = ['2022-09-01', '2023-08-31']
+DATE_RANGE = ['2019-08-31', '2023-08-31']
 
 
 def get_stock_prices(ticker, start_date, end_date):
