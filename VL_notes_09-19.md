@@ -24,9 +24,8 @@ Train vs Test Split:
 In order to validate our model, we will save 20% of our data as our test set and 80% as our train set. Because we are analyzing 5 years of data, our train set will be 1 year and our test set will be 4 years. Note that for this type of data, we don't want gaps in each data set, so we will not randomly split the data into train and test. Instead, we will use the most recent year as our test set and the 4 years before that as the train set.
 
 Z_score ratio:
-Recall the 68/95/99 rule from statistics. If normally distributed 68% of data will fall within 1 standard deviation of the mean, 95% of data will fall within 2 standard deviations of the mean, and 99% of data will fall within 3 standard deviations of the mean. In this context. In the context of our analyzing our price spread, there is only a 32% (100% - 68%) chance that the z score is 1 standard deviation away from the mean, and if we indeed have a stationary series, this would be "unusual", and our spread should revert back to the mean.
+Recall the 68/95/99 rule from statistics. If normally distributed 68% of data will fall within 1 standard deviation of the mean, 95% of data will fall within 2 standard deviations of the mean, and 99% of data will fall within 3 standard deviations of the mean. In the context of our analyzing our price spread, these exact percentages will not hold, but z scores too high or low still indicate that we the price is irregular, and should mean revert if we have a stationary series.
 
-Question: Should our trades get more aggressive as we are further from the mean? I'm thinking no because 
 
 
 References:
