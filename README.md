@@ -9,12 +9,7 @@ Pair trading is a strategy of investing that seeks to capitalize on price discre
 The pair trading algorithm will consist of several steps. The first step is to identify the asset pairs that may be suitable for pairs trading. This will be done by first examining the historical price data for each asset pair to determine if a statistically significant relationship exists. After a suitable pair has been identified, the second step will be to track the asset’s price movements and calculate the spread between them. If the spread meets certain criteria, a trade will be triggered. The data used for this project will be obtained from a publicly available source, Yahoo Finance. After our model is ran, the results will be visualized using line graphs and heatmaps.
 
 ## Requirements
-In order to use the pair trading algorithm program, you will need Python 3 and the following libraries installed: 
-
-- Numpy
-- Pandas 
-- Matplotlib
-- Seaborn
+In order to use the pair trading algorithm program, you will need Python 3 and the libraries listed in the [a relative link](requirements.txt) file located within this repo.
 
 ## Usage
 To implement the pair trading algorithm, simply use the [file name] program. You can customize the algorithm by adjusting the parameters in the corresponding code. 
