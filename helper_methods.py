@@ -1,16 +1,24 @@
 from dotenv import load_dotenv
 import os
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 import psycopg2
 import yfinance
 from statsmodels.tsa.stattools import adfuller, coint
+
+
 load_dotenv()
 DB_URL = os.getenv('DB_CONNECTION_STRING')
 EXPECTED_DF_LEN = 1006
 TRAINING_DATE_RANGE = ['2019-08-31', '2022-08-31']
 TESTING_DATE_RANGE = ['2022-09-01', '2023-08-31']
 DATE_RANGE = ['2019-08-31', '2023-08-31']
+TARGET_THRESHOLD = .8 # The percentage of data that we will be contained within our z_score band
+CURRENT_WINDOW = 10 # The number of days used to calculate the current mean
+HISTORIC_WINDOW = 30 # The number of days used to calculate the historic mean
 
+# Database Management
 
 def get_stock_prices(ticker, start_date, end_date):
     # use date format YYYY-MM-DD
@@ -159,3 +167,260 @@ def get_stock_prices_from_db():
 
 def get_stock_coint_pairs_from_db():
     return pd.read_sql_query('SELECT * FROM public.stock_cointegrations', DB_URL)
+
+
+# Signal Research
+
+def trade_threshold(data):
+    # Find a z_score upper and lower bound such that the lower bound is negative of the upper bound
+    target_threshold = TARGET_THRESHOLD # Our goal is that as close to this proportion of data will be inside our threshold
+    z_scores = data.dropna().values
+    desired_percentage_range = (target_threshold- .05, target_threshold + .05) # Because our tails won't exactly be symmetrical, we will have a margin or error of 5%
+    tolerance = 0.01
+    estimate = np.median(z_scores)
+    # Iterate through 
+    while True:
+    # Calculate the bounds around the estimate
+        lower_bound = -estimate
+        upper_bound = estimate
+        # Calculate the percentage of data within the bounds
+        percentage_within_bounds = np.mean((data >= lower_bound) & (data <= upper_bound))
+        # Check if the percentage is within the desired range
+        if desired_percentage_range[0] <= percentage_within_bounds <= desired_percentage_range[1]:
+            break  # Estimate is within the desired range
+        # Adjust the estimate based on the percentage
+        if percentage_within_bounds < target_threshold:
+            estimate += tolerance  # Increase the estimate
+        else:
+            estimate -= tolerance  # Decrease the estimate
+    return estimate
+
+def mvg_avg_z_score(data):
+    # 10 day moving avg represents our current mean
+    current_mvg_avg = data.rolling(window=CURRENT_WINDOW).mean()
+
+    # 30 day moving avg represents our historical mean
+    historic_mvg_avg = data.rolling(window=HISTORIC_WINDOW).mean()
+    historic_std = data.rolling(window=HISTORIC_WINDOW).std()
+
+    # Calculate z-score for difference between current and historical mean
+    z_score_currvshist = (current_mvg_avg - historic_mvg_avg) / historic_std
+
+    return z_score_currvshist
+
+def trade_signals(data, train_data):
+    signal_threshold = trade_threshold(mvg_avg_z_score(train_data)) # Z_score threshold to trade
+    stop_threshold = 1.32 # Z_score threshold to stop strategy
+    trades = data.copy()
+    trades[mvg_avg_z_score(data) > signal_threshold] = -1 # when the z-score is above 1, sell the spread
+    trades[mvg_avg_z_score(data) < -signal_threshold] = 1 # when the z-score is below -1, buy the spread
+    trades[(mvg_avg_z_score(data) >= -signal_threshold) & (mvg_avg_z_score(data) <= signal_threshold) | np.isnan(mvg_avg_z_score(data))] = 0 # otherwise, do nothing
+
+    #stop the strategy if we cross a certain threshold
+    stop_condition = (mvg_avg_z_score(data) > stop_threshold) | (mvg_avg_z_score(data) < -stop_threshold)
+    stop_index = stop_condition.idxmax() if stop_condition.any() else None
+    if not pd.isnull(stop_index):
+        trades[stop_index:] = 100 # If our trade signal is 100, that means we stop our strategy
+    return trades
+
+def trade_signals_no_stop_loss(data, train_data):
+    signal_threshold = trade_threshold(mvg_avg_z_score(train_data)) # Z_score threshold to trade
+    # stop_threshold = 1.32 # Z_score threshold to stop strategy
+    stop_threshold = 99
+    trades = data.copy()
+    trades[mvg_avg_z_score(data) > signal_threshold] = -1 # when the z-score is above 1, sell the spread
+    trades[mvg_avg_z_score(data) < -signal_threshold] = 1 # when the z-score is below -1, buy the spread
+    trades[(mvg_avg_z_score(data) >= -signal_threshold) & (mvg_avg_z_score(data) <= signal_threshold) | np.isnan(mvg_avg_z_score(data))] = 0 # otherwise, do nothing
+
+    #stop the strategy if we cross a certain threshold
+    stop_condition = (mvg_avg_z_score(data) > stop_threshold) | (mvg_avg_z_score(data) < -stop_threshold)
+    stop_index = stop_condition.idxmax() if stop_condition.any() else None
+    if not pd.isnull(stop_index):
+        trades[stop_index:] = 100 # If our trade signal is 100, that means we stop our strategy
+    return trades
+
+def calculate_profit(stock_1, stock_2, data, train_data):
+    trades = trade_signals(data, train_data)
+
+    daily_profits = pd.DataFrame(index=trades.index, columns=['Profit'])
+    daily_profits['Profit'] = 0.0  # Initialize daily profits to zero
+    daily_profits['Position_Stock_1'] = 0.0  # Initialize positions to zero
+    daily_profits['Position_Stock_2'] = 0. # Initialize positions to zero
+
+    balance = 0 # Initial balance of 0
+    position_stock_1 = 0
+    position_stock_2 = 0
+    next_day_position_stock_1 = 0 
+    next_day_position_stock_2 = 0
+    investment_per_stock = 100 # $100 to invest in each stock
+
+    # Simulate the trading strategy and calculate daily profits
+    for date in trades.index:
+        trade_signal = trades.loc[date]
+        
+        # Calculate the number of shares to buy/sell
+        stock_1_shares = investment_per_stock / stock_1.loc[date]
+        stock_2_shares = investment_per_stock / stock_2.loc[date]
+
+        if trade_signal == -1:
+            # Short $100 of stock_1 and long $100 of stock_2
+            next_day_position_stock_1 -= stock_1_shares
+            next_day_position_stock_2 += stock_2_shares
+        elif trade_signal == 1:
+            # Long $100 of stock_1 and short $100 of stock_2
+            next_day_position_stock_1 += stock_1_shares
+            next_day_position_stock_2 -= stock_2_shares
+        elif trade_signal == 100:
+            # If trade_signal is 100, immediately close all positions
+            break
+
+
+        # Calculate the daily profit based on positions and stock price changes
+        daily_profit_stock_1 = position_stock_1 * (stock_1.loc[date] - stock_1.shift(1).loc[date])
+        daily_profit_stock_2 = position_stock_2 * (stock_2.loc[date] - stock_2.shift(1).loc[date])
+        daily_profit = daily_profit_stock_1 + daily_profit_stock_2
+
+        # Update the balance with daily profit
+        if not np.isnan(daily_profit):
+            balance += daily_profit
+
+        # Update the daily profit and positions in the DataFrame
+        daily_profits.loc[date, 'Profit'] = float(daily_profit)
+        daily_profits.loc[date, 'Position_Stock_1'] = float(position_stock_1)
+        daily_profits.loc[date, 'Position_Stock_2'] = float(position_stock_2)
+        daily_profits.loc[date, 'Cumulative Profit'] = balance
+
+        # Update positions for the next day
+        position_stock_1 = next_day_position_stock_1
+        position_stock_2 = next_day_position_stock_2
+    # Close positions at stop threshold or after time period ends
+    return (balance, daily_profits)
+
+def calculate_profit_no_stop_loss(stock_1, stock_2, data, train_data):
+    trades = trade_signals_no_stop_loss(data, train_data)
+
+    daily_profits = pd.DataFrame(index=trades.index, columns=['Profit'])
+    daily_profits['Profit'] = 0.0  # Initialize daily profits to zero
+    daily_profits['Position_Stock_1'] = 0.0  # Initialize positions to zero
+    daily_profits['Position_Stock_2'] = 0. # Initialize positions to zero
+
+    balance = 0 # Initial balance of 0
+    position_stock_1 = 0
+    position_stock_2 = 0
+    next_day_position_stock_1 = 0 
+    next_day_position_stock_2 = 0
+    investment_per_stock = 100 # $100 to invest in each stock
+
+    # Simulate the trading strategy and calculate daily profits
+    for date in trades.index:
+        trade_signal = trades.loc[date]
+        
+        # Calculate the number of shares to buy/sell
+        stock_1_shares = investment_per_stock / stock_1.loc[date]
+        stock_2_shares = investment_per_stock / stock_2.loc[date]
+
+        if trade_signal == -1:
+            # Short $100 of stock_1 and long $100 of stock_2
+            next_day_position_stock_1 -= stock_1_shares
+            next_day_position_stock_2 += stock_2_shares
+        elif trade_signal == 1:
+            # Long $100 of stock_1 and short $100 of stock_2
+            next_day_position_stock_1 += stock_1_shares
+            next_day_position_stock_2 -= stock_2_shares
+        elif trade_signal == 100:
+            # If trade_signal is 100, immediately close all positions
+            break
+
+
+        # Calculate the daily profit based on positions and stock price changes
+        daily_profit_stock_1 = position_stock_1 * (stock_1.loc[date] - stock_1.shift(1).loc[date])
+        daily_profit_stock_2 = position_stock_2 * (stock_2.loc[date] - stock_2.shift(1).loc[date])
+        daily_profit = daily_profit_stock_1 + daily_profit_stock_2
+
+        # Update the balance with daily profit
+        if not np.isnan(daily_profit):
+            balance += daily_profit
+
+        # Update the daily profit and positions in the DataFrame
+        daily_profits.loc[date, 'Profit'] = float(daily_profit)
+        daily_profits.loc[date, 'Position_Stock_1'] = float(position_stock_1)
+        daily_profits.loc[date, 'Position_Stock_2'] = float(position_stock_2)
+        daily_profits.loc[date, 'Cumulative Profit'] = balance
+
+        # Update positions for the next day
+        position_stock_1 = next_day_position_stock_1
+        position_stock_2 = next_day_position_stock_2
+    # Close positions at stop threshold or after time period ends
+    return (balance, daily_profits)
+
+# Visualizations
+
+def plot_stock_pair(series_one, label_one, series_two, label_two):
+    _fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(series_one, label=label_one)
+    ax.plot(series_two, label=label_two)
+    ax.legend()
+    plt.show()
+
+def plot_stock_one_adjusted_pair(series_one, label_one, series_two, label_two):
+    series_one_adjusted = series_one / \
+        (np.mean(series_one) / np.mean(series_two))
+    plot_stock_pair(series_one_adjusted, label_one, series_two, label_two)
+
+def plot_stock_pair_ratio(series_one, label_one, series_two, label_two):
+    # Use ratios to calculate spread
+    ratio = series_one / series_two
+
+    # Normalize the series
+    z_score = (ratio - ratio.mean()) / ratio.std()
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(z_score, label=f'Ratio ({label_one} / {label_two})')
+    plt.axhline(z_score.mean(), color='black')
+
+    # ~80% of the data lies within our threshold
+    plt.axhline(trade_threshold(z_score), color = 'blue')
+    plt.axhline(-trade_threshold(z_score), color = 'blue')
+
+    ax.legend()
+    plt.show()
+
+def plot_mvg_avg_ratio(price_ratio_series, train_data):
+    # Plot new graph based off moving avg
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(mvg_avg_z_score(price_ratio_series), label='mvg_avg ratio z_score')
+    plt.axhline(0, color='black')
+    plt.axhline(trade_threshold(mvg_avg_z_score(train_data)), color = 'blue')
+    plt.axhline(-trade_threshold(mvg_avg_z_score(train_data)), color = 'blue')
+    plt.legend()
+    plt.show()
+
+def plot_trade_signals(ratio_series, train_data):
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(ratio_series, label='label')
+    ax.scatter(ratio_series.index[trade_signals(ratio_series, train_data) == 1], ratio_series[trade_signals(ratio_series, train_data) == 1], color='green', marker='^', label='Buy (1)')
+    ax.scatter(ratio_series.index[trade_signals(ratio_series, train_data) == -1], ratio_series[trade_signals(ratio_series, train_data) == -1], color='red', marker='v', label='Sell (-1)')
+    plt.show()
+
+def plot_trade_signals_no_stop_loss(ratio_series, train_data):
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(ratio_series, label='label')
+    ax.scatter(ratio_series.index[trade_signals_no_stop_loss(ratio_series, train_data) == 1], ratio_series[trade_signals_no_stop_loss(ratio_series, train_data) == 1], color='green', marker='^', label='Buy (1)')
+    ax.scatter(ratio_series.index[trade_signals_no_stop_loss(ratio_series, train_data) == -1], ratio_series[trade_signals_no_stop_loss(ratio_series, train_data) == -1], color='red', marker='v', label='Sell (-1)')
+    plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
