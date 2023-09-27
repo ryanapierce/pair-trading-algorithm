@@ -19,13 +19,13 @@ def scrape_stock_symbols(arr: List[Dict[str, str]] = sector_pages, top_n: int = 
     Extracts the stock symbols
 
     Parameters:
-        arr (List[Dict[str, str]]): = sector_pages this is the list of dictionaries, 
+        arr (List[Dict[str, str]]): list of dictionaries, 
                                     the keys of each dictionary are the 
                                     url to scrape and the sector
-        top_n (int): this is the number of tickers the function should scrape
+        top_n (int): the number of tickers the function should scrape
 
     Returns:
-        List[Dict[List[str], str]]: returns a list of dictionaries, the keys of each dictionary are the 
+        stocks (List[Dict[List[str], str]]): returns a list of dictionaries, the keys of each dictionary are the 
                                     stock symbols and the sector
     """
     stocks = []
