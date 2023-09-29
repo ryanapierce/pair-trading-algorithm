@@ -10,7 +10,7 @@ from statsmodels.tsa.stattools import adfuller, coint
 
 
 load_dotenv()
-DB_URL = os.getenv('DB_CONNECTION_STRING')
+DB_URL = os.getenv("DB_CONNECTION_STRING")
 EXPECTED_DF_LEN = 1006
 TRAINING_DATE_RANGE = ('2019-08-31', '2022-08-31')
 TESTING_DATE_RANGE = ('2022-09-01', '2023-08-31')
@@ -37,8 +37,9 @@ def get_stock_prices(ticker: str, start_date: str, end_date: str) -> pd.DataFram
         prices_df (pd.DataFrame): returns a dataframe of the stock prices from yfinance
     """
     prices_df = yfinance.Ticker(ticker).history(
-        start=start_date, end=end_date, raise_errors=True)
-    prices_df['Ticker'] = ticker
+        start=start_date, end=end_date, raise_errors=True
+    )
+    prices_df["Ticker"] = ticker
     return prices_df
 
 
@@ -61,7 +62,7 @@ def test_stock_cointegration(stock_one: pd.Series, stock_two: pd.Series) -> tupl
     """
     res = coint(stock_one, stock_two)
     p_value = res[1]
-    signifigance_level = .05
+    signifigance_level = 0.05
     return p_value < signifigance_level, res
 
 
@@ -84,7 +85,7 @@ def adf_test(series: pd.Series) -> tuple:
 
     res = adfuller(series)
     p_value = res[1]
-    signifigance_level = .05
+    signifigance_level = 0.05
     return p_value < signifigance_level, res
 
 
@@ -244,9 +245,7 @@ def find_cointegrated_pairs(df: pd.DataFrame, tickers: List[str], sector: str) -
         for t2 in tickers:
             if t1 == t2:
                 continue
-            does_cointegrate, res = test_stock_cointegration(
-                df[t1], df[t2]
-            )
+            does_cointegrate, res = test_stock_cointegration(df[t1], df[t2])
             if not does_cointegrate:
                 continue
             str_stock_pair = ','.join(list(sorted([t1, t2])))
@@ -254,8 +253,12 @@ def find_cointegrated_pairs(df: pd.DataFrame, tickers: List[str], sector: str) -
             unique_pairs.add(str_stock_pair)
             if (len(unique_pairs) != curr_len):
                 ratio_stationarity = adf_test(df[t1] / df[t2])[1][1]
-                coint_pair = [*list(sorted([t1, t2])),
-                              f'{round(res[1], 5)}', sector, f'{round(ratio_stationarity, 5)}']
+                coint_pair = [
+                    *list(sorted([t1, t2])),
+                    f"{round(res[1], 5)}",
+                    sector,
+                    f"{round(ratio_stationarity, 5)}",
+                ]
                 print(coint_pair)
                 pairs.append(coint_pair)
     return pairs
@@ -277,13 +280,23 @@ def insert_stock_records_to_db(ticker: str, sector: str, start_date: str, end_da
     """
     try:
         df = get_stock_prices(ticker, start_date, end_date).reset_index()
-        if (len(df) != EXPECTED_DF_LEN):
+        if len(df) != EXPECTED_DF_LEN:
             print(
-                f'{ticker} in sector {sector}, does not contain the expected number of rows: {len(df)}')
-        df['sql_insert'] = df['Date'].dt.strftime('%Y-%m-%d')
-        df['sql_insert'] = '(' + round(df['Close'], 2).astype(str) + ',\'' + \
-            df['Ticker'] + '\',\'' + df['sql_insert'] + '\',\'' + sector + '\')'
-        insert_string = ',\n'.join(df['sql_insert'].array)
+                f"{ticker} in sector {sector}, does not contain the expected number of rows: {len(df)}"
+            )
+        df["sql_insert"] = df["Date"].dt.strftime("%Y-%m-%d")
+        df["sql_insert"] = (
+            "("
+            + round(df["Close"], 2).astype(str)
+            + ",'"
+            + df["Ticker"]
+            + "','"
+            + df["sql_insert"]
+            + "','"
+            + sector
+            + "')"
+        )
+        insert_string = ",\n".join(df["sql_insert"].array)
         sql_query = f"""
                     INSERT INTO public.stock_prices(price, ticker, date, sector)
                     VALUES {insert_string};
@@ -291,7 +304,8 @@ def insert_stock_records_to_db(ticker: str, sector: str, start_date: str, end_da
         sql_execution_wrapper(sql_query)
     except Exception:
         print(
-            f'Unable to find Stock Data for {ticker} in sector {sector}, skipping this entry')
+            f"Unable to find Stock Data for {ticker} in sector {sector}, skipping this entry"
+        )
 
 
 def get_stock_prices_from_db() -> pd.DataFrame:
@@ -320,6 +334,7 @@ def get_stock_coint_pairs_from_db() -> pd.DataFrame:
 
 # Signal Research
 
+
 def trade_threshold(data):
     # Find a z_score upper and lower bound such that the lower bound is negative of the upper bound
     # Our goal is that as close to this proportion of data will be inside our threshold
@@ -338,7 +353,11 @@ def trade_threshold(data):
         percentage_within_bounds = np.mean(
             (data >= lower_bound) & (data <= upper_bound))
         # Check if the percentage is within the desired range
-        if desired_percentage_range[0] <= percentage_within_bounds <= desired_percentage_range[1]:
+        if (
+            desired_percentage_range[0]
+            <= percentage_within_bounds
+            <= desired_percentage_range[1]
+        ):
             break  # Estimate is within the desired range
         # Adjust the estimate based on the percentage
         if percentage_within_bounds < target_threshold:
@@ -454,10 +473,10 @@ def calculate_profit(stock_1, stock_2, data, train_data):
             balance += daily_profit
 
         # Update the daily profit and positions in the DataFrame
-        daily_profits.loc[date, 'Profit'] = float(daily_profit)
-        daily_profits.loc[date, 'Position_Stock_1'] = float(position_stock_1)
-        daily_profits.loc[date, 'Position_Stock_2'] = float(position_stock_2)
-        daily_profits.loc[date, 'Cumulative Profit'] = balance
+        daily_profits.loc[date, "Profit"] = float(daily_profit)
+        daily_profits.loc[date, "Position_Stock_1"] = float(position_stock_1)
+        daily_profits.loc[date, "Position_Stock_2"] = float(position_stock_2)
+        daily_profits.loc[date, "Cumulative Profit"] = balance
 
         # Update positions for the next day
         position_stock_1 = next_day_position_stock_1
@@ -513,10 +532,10 @@ def calculate_profit_no_stop_loss(stock_1, stock_2, data, train_data):
             balance += daily_profit
 
         # Update the daily profit and positions in the DataFrame
-        daily_profits.loc[date, 'Profit'] = float(daily_profit)
-        daily_profits.loc[date, 'Position_Stock_1'] = float(position_stock_1)
-        daily_profits.loc[date, 'Position_Stock_2'] = float(position_stock_2)
-        daily_profits.loc[date, 'Cumulative Profit'] = balance
+        daily_profits.loc[date, "Profit"] = float(daily_profit)
+        daily_profits.loc[date, "Position_Stock_1"] = float(position_stock_1)
+        daily_profits.loc[date, "Position_Stock_2"] = float(position_stock_2)
+        daily_profits.loc[date, "Cumulative Profit"] = balance
 
         # Update positions for the next day
         position_stock_1 = next_day_position_stock_1
