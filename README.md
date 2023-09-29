@@ -15,7 +15,7 @@ In order to use the pair trading algorithm program, you will need Python 3 and t
 To implement the pair trading algorithm, simply use the [file name] program. You can customize the algorithm by adjusting the parameters in the corresponding code. 
 
 ## Contributions
-This project was created by Raul Martinez (@raulmartinez1855), Vincent Lee (@leevw), and Ryan Pierce (@ryanapierce) as part of the SIADS 593: Milestone I class at the University of Michigan. If you wish to make a contribution, please open an issue or pull request.
+This project was created by Raul Martinez ([@raulmartinez1855](https://github.com/raulmartinez1855)), Vincent Lee ([@leevw](https://github.com/leevw)), and Ryan Pierce ([@ryanapierce](https://github.com/ryanapierce)) as part of the SIADS 593: Milestone I class at the University of Michigan. If you wish to make a contribution, please open an issue or pull request.
 
 ## Disclaimer
 This code is provided for educational purposes only and should not be used for trading in any real-money markets.

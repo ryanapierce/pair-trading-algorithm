@@ -1,13 +1,21 @@
 from datetime import date
 import web_scraper
-from helper_methods import EXPECTED_DF_LEN, TRAINING_DATE_RANGE, create_stock_cointegration_table, drop_stock_cointegration_table, drop_stock_prices_table, create_stock_price_table, find_cointegrated_pairs, get_stock_prices_from_db, insert_stock_coint_pairs_to_db, insert_stock_records_to_db
+from helper_methods import EXPECTED_DF_LEN, DATE_RANGE,  TRAINING_DATE_RANGE, create_stock_cointegration_table, drop_stock_cointegration_table, drop_stock_prices_table, create_stock_price_table, find_cointegrated_pairs, get_stock_prices_from_db, insert_stock_coint_pairs_to_db, insert_stock_records_to_db
 import pandas as pd
 
 
-def seed_stock_info():
-    START_DATE = '2019-08-31'
-    END_DATE = '2023-08-31'
+def seed_stock_info() -> None:
+    """
+    Orchestrates web scraping of stock symbols from StockAnalysis. 
+    Creation the database table,
+    Insertion of the relevant yfinance stock ticker information for each stock.
 
+    Parameters:
+        None
+    Returns:
+        None
+    """
+    start_date, end_date = DATE_RANGE
     stocks_with_sectors = web_scraper.scrape_stock_symbols()
 
     drop_stock_prices_table()
@@ -18,11 +26,22 @@ def seed_stock_info():
         stock_tickers, sector = obj['stock_symbols'], obj['sector']
         for ticker in stock_tickers:
             print(f'Inserting Records for {ticker}. Current Count: {count}')
-            insert_stock_records_to_db(ticker, sector, START_DATE, END_DATE)
+            insert_stock_records_to_db(ticker, sector, start_date, end_date)
             count += 1
 
 
-def seed_stock_coint_pairs():
+def seed_stock_coint_pairs() -> None:
+    """
+    Orchestrates creation the database table.
+    Manipulates the DataFrame representation of the stock_prices db table to be analyzed.
+    Analyzes cointegration for same sector stocks.
+    Inserts cointegrated values into the db.
+
+    Parameters:
+        None
+    Returns:
+        None
+    """
     drop_stock_cointegration_table()
     create_stock_cointegration_table()
 
@@ -55,3 +74,21 @@ def seed_stock_coint_pairs():
         sector_coint_pairs = find_cointegrated_pairs(
             training_price_series_df, sector_stocks_names, sector)
         insert_stock_coint_pairs_to_db(sector_coint_pairs)
+
+
+def main() -> None:
+    """
+    Orchestrates program flow.
+
+    Parameters:
+        None
+    Returns:
+        None
+    """
+    print('CAUTION: Both scraping functions are commented out, calling these functions will alter the state of the database.')
+    # seed_stock_info()
+    # seed_stock_coint_pairs()
+
+
+if __name__ == '__main__':
+    main()

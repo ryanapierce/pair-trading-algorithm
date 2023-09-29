@@ -1,3 +1,4 @@
+from typing import List, Dict
 import requests
 from bs4 import BeautifulSoup
 
@@ -9,8 +10,25 @@ sector_pages = [
 ]
 
 
-def scrape_stock_symbols(arr=sector_pages, top_n=100):
-    stock_list = []
+def scrape_stock_symbols(arr: List[Dict[str, str]] = sector_pages, top_n: int = 100) -> List[Dict[List[str], str]]:
+    """
+    Orchestrates scraping of StockAnalysis.
+    Takes a list of pages to scrape.
+    Utilizes requests lib to send GET Requests to the pages.
+    Parses response with beautifulsoup4.
+    Extracts the stock symbols
+
+    Parameters:
+        arr (List[Dict[str, str]]): list of dictionaries, 
+                                    the keys of each dictionary are the 
+                                    url to scrape and the sector
+        top_n (int): the number of tickers the function should scrape
+
+    Returns:
+        stocks (List[Dict[List[str], str]]): returns a list of dictionaries, the keys of each dictionary are the 
+                                    stock symbols and the sector
+    """
+    stocks = []
     for d in arr:
         url, sector = d['url'], d['sector']
         page = requests.get(url)
@@ -18,5 +36,5 @@ def scrape_stock_symbols(arr=sector_pages, top_n=100):
         main_table = soup.find(id='main-table')
         rows = main_table.find_all("td", class_="sym svelte-1tv1ofl")[:top_n]
         stock_symbols = list(map(lambda x: x.a.text, rows))
-        stock_list.append({'stock_symbols': stock_symbols, 'sector': sector})
-    return stock_list
+        stocks.append({'stock_symbols': stock_symbols, 'sector': sector})
+    return stocks
