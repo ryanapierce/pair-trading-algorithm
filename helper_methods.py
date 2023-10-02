@@ -567,13 +567,13 @@ def calculate_profit_no_stop_loss(stock_1, stock_2, data, train_data):
     return (balance, daily_profits)
 
 
-def calculate_sp500_investment_returns(TESTING_DATE_RANGE, initial_investment):
+def calculate_sp500_investment_returns(DATE_RANGE, initial_investment):
     # Define the SPX ticker symbol for S&P 500
     spx_ticker = "^SPX"
 
     # Convert date strings to datetime objects
-    start_date = datetime.datetime.strptime(TESTING_DATE_RANGE[0], "%Y-%m-%d")
-    end_date = datetime.datetime.strptime(TESTING_DATE_RANGE[1], "%Y-%m-%d")
+    start_date = datetime.datetime.strptime(DATE_RANGE[0], "%Y-%m-%d")
+    end_date = datetime.datetime.strptime(DATE_RANGE[1], "%Y-%m-%d")
 
     # Download historical data for SPX
     sp500 = yf.download(spx_ticker, start=start_date, end=end_date)
