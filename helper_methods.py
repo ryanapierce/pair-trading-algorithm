@@ -3,20 +3,20 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import psycopg2
-import yfinance
+import yfinance as yf
 from statsmodels.tsa.stattools import adfuller, coint
+import datetime
 
 
 load_dotenv()
 DB_URL = os.getenv("DB_CONNECTION_STRING")
 EXPECTED_DF_LEN = 1006
-TRAINING_DATE_RANGE = ('2019-08-31', '2022-08-31')
-TESTING_DATE_RANGE = ('2022-09-01', '2023-08-31')
-DATE_RANGE = ('2019-08-31', '2023-08-31')
+TRAINING_DATE_RANGE = ("2019-08-31", "2022-08-31")
+TESTING_DATE_RANGE = ("2022-09-01", "2023-08-31")
+DATE_RANGE = ("2019-08-31", "2023-08-31")
 # The percentage of data that we will be contained within our z_score band
-TARGET_THRESHOLD = .8
+TARGET_THRESHOLD = 0.8
 CURRENT_WINDOW = 10  # The number of days used to calculate the current mean
 HISTORIC_WINDOW = 30  # The number of days used to calculate the historic mean
 
@@ -25,7 +25,7 @@ HISTORIC_WINDOW = 30  # The number of days used to calculate the historic mean
 
 def get_stock_prices(ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
     """
-    takes a ticker, start date, and end date. Returns a dataframe 
+    takes a ticker, start date, and end date. Returns a dataframe
     of the stock prices from yfinance.
 
     Parameters:
@@ -36,7 +36,7 @@ def get_stock_prices(ticker: str, start_date: str, end_date: str) -> pd.DataFram
     Returns:
         prices_df (pd.DataFrame): returns a dataframe of the stock prices from yfinance
     """
-    prices_df = yfinance.Ticker(ticker).history(
+    prices_df = yf.Ticker(ticker).history(
         start=start_date, end=end_date, raise_errors=True
     )
     prices_df["Ticker"] = ticker
@@ -45,8 +45,8 @@ def get_stock_prices(ticker: str, start_date: str, end_date: str) -> pd.DataFram
 
 def test_stock_cointegration(stock_one: pd.Series, stock_two: pd.Series) -> tuple:
     """
-    takes two pandas series of stock prices and returns a tuple of a 
-    boolean indicating if the p_value was significant and a tuple of 
+    takes two pandas series of stock prices and returns a tuple of a
+    boolean indicating if the p_value was significant and a tuple of
     results from the statsmodel cointegration test.
 
     The Null hypothesis is that there is no cointegration,
@@ -56,7 +56,7 @@ def test_stock_cointegration(stock_one: pd.Series, stock_two: pd.Series) -> tupl
 
     Parameters:
         stock_one (pd.Series): 1st pandas series of stock prices to compare cointegration
-        stock_two (pd.Series): 2nd pandas series of stock prices to compare cointegration      
+        stock_two (pd.Series): 2nd pandas series of stock prices to compare cointegration
     Returns:
         tuple
     """
@@ -68,8 +68,8 @@ def test_stock_cointegration(stock_one: pd.Series, stock_two: pd.Series) -> tupl
 
 def adf_test(series: pd.Series) -> tuple:
     """
-    takes a pandas series of stock prices and returns a tuple of a 
-    boolean indicating if the p_value was significant and a tuple of 
+    takes a pandas series of stock prices and returns a tuple of a
+    boolean indicating if the p_value was significant and a tuple of
     results from the statsmodel adfuller stationarity test.
 
     The null hypothesis of the Augmented Dickey-Fuller is
@@ -78,7 +78,7 @@ def adf_test(series: pd.Series) -> tuple:
     size, then we cannot reject that there is a unit root.
 
     Parameters:
-        series (pd.Series): Pandas series of stock prices to test for stationarity        
+        series (pd.Series): Pandas series of stock prices to test for stationarity
     Returns:
         tuple
     """
@@ -94,7 +94,7 @@ def connect_with_database() -> psycopg2.extensions.connection:
     this function connects to the database and returns a connection to the database
 
     Parameters:
-        None   
+        None
     Returns:
         psycopg2.extensions.connection: returns a connection to the database
     """
@@ -105,13 +105,13 @@ def connect_with_database() -> psycopg2.extensions.connection:
 def sql_execution_wrapper(sql_statement: str) -> None:
     """
     this is a wrapper function to handle the execution of sql statements.
-    It will connect to the database. 
+    It will connect to the database.
     Execute the sql statement.
-    Commit the changes. 
+    Commit the changes.
     Then close the connection.
 
     Parameters:
-        sql_statement (str): the sql statement to execute   
+        sql_statement (str): the sql statement to execute
     Returns:
         psycopg2.extensions.connection: returns a connection to the database
     """
@@ -130,7 +130,7 @@ def create_stock_price_table() -> None:
     This function creates the stock_prices table in the database if it does not exist.
 
     Parameters:
-        None 
+        None
     Returns:
         None
     """
@@ -152,7 +152,7 @@ def drop_stock_cointegration_table() -> None:
     This function deletes the stock_cointegrations table in the database if it exists.
 
     Parameters:
-        None 
+        None
     Returns:
         None
     """
@@ -165,7 +165,7 @@ def create_stock_cointegration_table() -> None:
     This function creates the stock_cointegrations table in the database if it does not exist.
 
     Parameters:
-        None 
+        None
     Returns:
         None
     """
@@ -185,20 +185,24 @@ def create_stock_cointegration_table() -> None:
 
 def insert_stock_coint_pairs_to_db(stock_pairs_list: List[List]) -> None:
     """
-    Takes list of lists from the find_cointegrated_pairs 
-    function and inserts them into the database into 
+    Takes list of lists from the find_cointegrated_pairs
+    function and inserts them into the database into
     the stock_cointegrations table.
 
     Parameters:
-        stock_pairs_list (List[List]): a list of lists of stock pairs 
+        stock_pairs_list (List[List]): a list of lists of stock pairs
                                        that are cointegrated. each list contains
-                                       first stock, second stock, p_value for cointegration, 
+                                       first stock, second stock, p_value for cointegration,
                                        sector, and p_value for stationarity
     Returns:
         None
     """
-    insert_stmt = ','.join([f'(\'{stock_one}\', \'{stock_two}\', {pvalue}, \'{sector}\',{ratio_stationarity})'
-                            for stock_one, stock_two, pvalue, sector, ratio_stationarity in stock_pairs_list])
+    insert_stmt = ",".join(
+        [
+            f"('{stock_one}', '{stock_two}', {pvalue}, '{sector}',{ratio_stationarity})"
+            for stock_one, stock_two, pvalue, sector, ratio_stationarity in stock_pairs_list
+        ]
+    )
 
     sql_query = f"""
                     INSERT INTO public.stock_cointegrations(stock_one, stock_two, pvalue, sector, ratio_stationarity)
@@ -212,7 +216,7 @@ def drop_stock_prices_table() -> None:
     This function deletes the stock_prices table in the database if it exists.
 
     Parameters:
-        None 
+        None
     Returns:
         None
     """
@@ -220,21 +224,23 @@ def drop_stock_prices_table() -> None:
     sql_execution_wrapper(sql_query)
 
 
-def find_cointegrated_pairs(df: pd.DataFrame, tickers: List[str], sector: str) -> List[tuple]:
+def find_cointegrated_pairs(
+    df: pd.DataFrame, tickers: List[str], sector: str
+) -> List[tuple]:
     """
-    takes a dataframe of stock prices, a list of stock symbols, and a sector. 
+    takes a dataframe of stock prices, a list of stock symbols, and a sector.
     Then runs a cointegration test on each pair of stocks.
-    If the p_value is significant, then it will also conduct an 
+    If the p_value is significant, then it will also conduct an
     adfuller test on the ratio of the two stocks. To prevent duplicates,
     a set is used to keep track of the stock pairs that have already been tested.
     The stocks are sorted alphabetically and then joined with a comma to create a string.
-    If the combination is new. It will be appended to the list that is returned by the function, 
+    If the combination is new. It will be appended to the list that is returned by the function,
     as a list containing:
         first stock, second stock, p_value for cointegration, sector, p_value for stationarity
 
     Parameters:
         df (pd.DataFrame): dataframe of stock prices
-        tickers (List[str]): list of stock symbols 
+        tickers (List[str]): list of stock symbols
         sector (str): the sector the tickers list of stocks belongs to
     Returns:
         List[List]: returns a list of list of stock pairs that are cointegrated
@@ -248,10 +254,10 @@ def find_cointegrated_pairs(df: pd.DataFrame, tickers: List[str], sector: str) -
             does_cointegrate, res = test_stock_cointegration(df[t1], df[t2])
             if not does_cointegrate:
                 continue
-            str_stock_pair = ','.join(list(sorted([t1, t2])))
+            str_stock_pair = ",".join(list(sorted([t1, t2])))
             curr_len = len(unique_pairs)
             unique_pairs.add(str_stock_pair)
-            if (len(unique_pairs) != curr_len):
+            if len(unique_pairs) != curr_len:
                 ratio_stationarity = adf_test(df[t1] / df[t2])[1][1]
                 coint_pair = [
                     *list(sorted([t1, t2])),
@@ -264,9 +270,11 @@ def find_cointegrated_pairs(df: pd.DataFrame, tickers: List[str], sector: str) -
     return pairs
 
 
-def insert_stock_records_to_db(ticker: str, sector: str, start_date: str, end_date: str) -> None:
+def insert_stock_records_to_db(
+    ticker: str, sector: str, start_date: str, end_date: str
+) -> None:
     """
-    Orchestrates the insertion of stock prices into the database. 
+    Orchestrates the insertion of stock prices into the database.
     Provides a warning if the data is not the expected length.
     If there is an issue while trying to insert the data, it will print to the console.
 
@@ -317,7 +325,7 @@ def get_stock_prices_from_db() -> pd.DataFrame:
     Returns:
         pd.DataFrame: returns a dataframe of the stock_prices table
     """
-    return pd.read_sql_query('SELECT * FROM public.stock_prices', DB_URL)
+    return pd.read_sql_query("SELECT * FROM public.stock_prices", DB_URL)
 
 
 def get_stock_coint_pairs_from_db() -> pd.DataFrame:
@@ -329,7 +337,7 @@ def get_stock_coint_pairs_from_db() -> pd.DataFrame:
     Returns:
         pd.DataFrame: returns a dataframe of the stock_prices table
     """
-    return pd.read_sql_query('SELECT * FROM public.stock_cointegrations', DB_URL)
+    return pd.read_sql_query("SELECT * FROM public.stock_cointegrations", DB_URL)
 
 
 # Signal Research
@@ -341,7 +349,7 @@ def trade_threshold(data):
     target_threshold = TARGET_THRESHOLD
     z_scores = data.dropna().values
     # Because our tails won't exactly be symmetrical, we will have a margin or error of 5%
-    desired_percentage_range = (target_threshold - .05, target_threshold + .05)
+    desired_percentage_range = (target_threshold - 0.05, target_threshold + 0.05)
     tolerance = 0.01
     estimate = np.median(z_scores)
     # Iterate through
@@ -351,7 +359,8 @@ def trade_threshold(data):
         upper_bound = estimate
         # Calculate the percentage of data within the bounds
         percentage_within_bounds = np.mean(
-            (data >= lower_bound) & (data <= upper_bound))
+            (data >= lower_bound) & (data <= upper_bound)
+        )
         # Check if the percentage is within the desired range
         if (
             desired_percentage_range[0]
@@ -382,20 +391,25 @@ def mvg_avg_z_score(data):
 
 
 def trade_signals(data, train_data):
-    signal_threshold = trade_threshold(mvg_avg_z_score(
-        train_data))  # Z_score threshold to trade
+    signal_threshold = trade_threshold(
+        mvg_avg_z_score(train_data)
+    )  # Z_score threshold to trade
     stop_threshold = 1.32  # Z_score threshold to stop strategy
     trades = data.copy()
     # when the z-score is above 1, sell the spread
     trades[mvg_avg_z_score(data) > signal_threshold] = -1
     # when the z-score is below -1, buy the spread
     trades[mvg_avg_z_score(data) < -signal_threshold] = 1
-    trades[(mvg_avg_z_score(data) >= -signal_threshold) & (mvg_avg_z_score(data) <=
-                                                           signal_threshold) | np.isnan(mvg_avg_z_score(data))] = 0  # otherwise, do nothing
+    trades[
+        (mvg_avg_z_score(data) >= -signal_threshold)
+        & (mvg_avg_z_score(data) <= signal_threshold)
+        | np.isnan(mvg_avg_z_score(data))
+    ] = 0  # otherwise, do nothing
 
     # stop the strategy if we cross a certain threshold
     stop_condition = (mvg_avg_z_score(data) > stop_threshold) | (
-        mvg_avg_z_score(data) < -stop_threshold)
+        mvg_avg_z_score(data) < -stop_threshold
+    )
     stop_index = stop_condition.idxmax() if stop_condition.any() else None
     if not pd.isnull(stop_index):
         # If our trade signal is 100, that means we stop our strategy
@@ -404,8 +418,9 @@ def trade_signals(data, train_data):
 
 
 def trade_signals_no_stop_loss(data, train_data):
-    signal_threshold = trade_threshold(mvg_avg_z_score(
-        train_data))  # Z_score threshold to trade
+    signal_threshold = trade_threshold(
+        mvg_avg_z_score(train_data)
+    )  # Z_score threshold to trade
     # stop_threshold = 1.32 # Z_score threshold to stop strategy
     stop_threshold = 99
     trades = data.copy()
@@ -413,12 +428,16 @@ def trade_signals_no_stop_loss(data, train_data):
     trades[mvg_avg_z_score(data) > signal_threshold] = -1
     # when the z-score is below -1, buy the spread
     trades[mvg_avg_z_score(data) < -signal_threshold] = 1
-    trades[(mvg_avg_z_score(data) >= -signal_threshold) & (mvg_avg_z_score(data) <=
-                                                           signal_threshold) | np.isnan(mvg_avg_z_score(data))] = 0  # otherwise, do nothing
+    trades[
+        (mvg_avg_z_score(data) >= -signal_threshold)
+        & (mvg_avg_z_score(data) <= signal_threshold)
+        | np.isnan(mvg_avg_z_score(data))
+    ] = 0  # otherwise, do nothing
 
     # stop the strategy if we cross a certain threshold
     stop_condition = (mvg_avg_z_score(data) > stop_threshold) | (
-        mvg_avg_z_score(data) < -stop_threshold)
+        mvg_avg_z_score(data) < -stop_threshold
+    )
     stop_index = stop_condition.idxmax() if stop_condition.any() else None
     if not pd.isnull(stop_index):
         # If our trade signal is 100, that means we stop our strategy
@@ -429,10 +448,10 @@ def trade_signals_no_stop_loss(data, train_data):
 def calculate_profit(stock_1, stock_2, data, train_data):
     trades = trade_signals(data, train_data)
 
-    daily_profits = pd.DataFrame(index=trades.index, columns=['Profit'])
-    daily_profits['Profit'] = 0.0  # Initialize daily profits to zero
-    daily_profits['Position_Stock_1'] = 0.0  # Initialize positions to zero
-    daily_profits['Position_Stock_2'] = 0.  # Initialize positions to zero
+    daily_profits = pd.DataFrame(index=trades.index, columns=["Profit"])
+    daily_profits["Profit"] = 0.0  # Initialize daily profits to zero
+    daily_profits["Position_Stock_1"] = 0.0  # Initialize positions to zero
+    daily_profits["Position_Stock_2"] = 0.0  # Initialize positions to zero
 
     balance = 0  # Initial balance of 0
     position_stock_1 = 0
@@ -462,10 +481,12 @@ def calculate_profit(stock_1, stock_2, data, train_data):
             break
 
         # Calculate the daily profit based on positions and stock price changes
-        daily_profit_stock_1 = position_stock_1 * \
-            (stock_1.loc[date] - stock_1.shift(1).loc[date])
-        daily_profit_stock_2 = position_stock_2 * \
-            (stock_2.loc[date] - stock_2.shift(1).loc[date])
+        daily_profit_stock_1 = position_stock_1 * (
+            stock_1.loc[date] - stock_1.shift(1).loc[date]
+        )
+        daily_profit_stock_2 = position_stock_2 * (
+            stock_2.loc[date] - stock_2.shift(1).loc[date]
+        )
         daily_profit = daily_profit_stock_1 + daily_profit_stock_2
 
         # Update the balance with daily profit
@@ -488,10 +509,10 @@ def calculate_profit(stock_1, stock_2, data, train_data):
 def calculate_profit_no_stop_loss(stock_1, stock_2, data, train_data):
     trades = trade_signals_no_stop_loss(data, train_data)
 
-    daily_profits = pd.DataFrame(index=trades.index, columns=['Profit'])
-    daily_profits['Profit'] = 0.0  # Initialize daily profits to zero
-    daily_profits['Position_Stock_1'] = 0.0  # Initialize positions to zero
-    daily_profits['Position_Stock_2'] = 0.  # Initialize positions to zero
+    daily_profits = pd.DataFrame(index=trades.index, columns=["Profit"])
+    daily_profits["Profit"] = 0.0  # Initialize daily profits to zero
+    daily_profits["Position_Stock_1"] = 0.0  # Initialize positions to zero
+    daily_profits["Position_Stock_2"] = 0.0  # Initialize positions to zero
 
     balance = 0  # Initial balance of 0
     position_stock_1 = 0
@@ -521,10 +542,12 @@ def calculate_profit_no_stop_loss(stock_1, stock_2, data, train_data):
             break
 
         # Calculate the daily profit based on positions and stock price changes
-        daily_profit_stock_1 = position_stock_1 * \
-            (stock_1.loc[date] - stock_1.shift(1).loc[date])
-        daily_profit_stock_2 = position_stock_2 * \
-            (stock_2.loc[date] - stock_2.shift(1).loc[date])
+        daily_profit_stock_1 = position_stock_1 * (
+            stock_1.loc[date] - stock_1.shift(1).loc[date]
+        )
+        daily_profit_stock_2 = position_stock_2 * (
+            stock_2.loc[date] - stock_2.shift(1).loc[date]
+        )
         daily_profit = daily_profit_stock_1 + daily_profit_stock_2
 
         # Update the balance with daily profit
@@ -543,68 +566,28 @@ def calculate_profit_no_stop_loss(stock_1, stock_2, data, train_data):
     # Close positions at stop threshold or after time period ends
     return (balance, daily_profits)
 
-# Visualizations
 
+def calculate_sp500_investment_returns(DATE_RANGE, initial_investment):
+    # Define the SPX ticker symbol for S&P 500
+    spx_ticker = "^SPX"
 
-def plot_stock_pair(series_one, label_one, series_two, label_two):
-    _fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(series_one, label=label_one)
-    ax.plot(series_two, label=label_two)
-    ax.legend()
-    plt.show()
+    # Convert date strings to datetime objects
+    start_date = datetime.datetime.strptime(DATE_RANGE[0], "%Y-%m-%d")
+    end_date = datetime.datetime.strptime(DATE_RANGE[1], "%Y-%m-%d")
 
+    # Download historical data for SPX
+    sp500 = yf.download(spx_ticker, start=start_date, end=end_date)
 
-def plot_stock_one_adjusted_pair(series_one, label_one, series_two, label_two):
-    series_one_adjusted = series_one / \
-        (np.mean(series_one) / np.mean(series_two))
-    plot_stock_pair(series_one_adjusted, label_one, series_two, label_two)
+    # Calculate daily returns
+    sp500["Daily_Return"] = sp500["Adj Close"].pct_change()
 
+    # Calculate the cumulative returns
+    sp500["Cumulative_Returns"] = (1 + sp500["Daily_Return"]).cumprod()
 
-def plot_stock_pair_ratio(series_one, label_one, series_two, label_two):
-    # Use ratios to calculate spread
-    ratio = series_one / series_two
+    # Calculate the portfolio value
+    sp500["Portfolio_Value"] = initial_investment * sp500["Cumulative_Returns"]
 
-    # Normalize the series
-    z_score = (ratio - ratio.mean()) / ratio.std()
+    # Calculate the profit
+    sp500["Profit"] = sp500["Portfolio_Value"] - initial_investment
 
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(z_score, label=f'Ratio ({label_one} / {label_two})')
-    plt.axhline(z_score.mean(), color='black')
-
-    # ~80% of the data lies within our threshold
-    plt.axhline(trade_threshold(z_score), color='blue')
-    plt.axhline(-trade_threshold(z_score), color='blue')
-
-    ax.legend()
-    plt.show()
-
-
-def plot_mvg_avg_ratio(price_ratio_series, train_data):
-    # Plot new graph based off moving avg
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(mvg_avg_z_score(price_ratio_series), label='mvg_avg ratio z_score')
-    plt.axhline(0, color='black')
-    plt.axhline(trade_threshold(mvg_avg_z_score(train_data)), color='blue')
-    plt.axhline(-trade_threshold(mvg_avg_z_score(train_data)), color='blue')
-    plt.legend()
-    plt.show()
-
-
-def plot_trade_signals(ratio_series, train_data):
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(ratio_series, label='label')
-    ax.scatter(ratio_series.index[trade_signals(ratio_series, train_data) == 1], ratio_series[trade_signals(
-        ratio_series, train_data) == 1], color='green', marker='^', label='Buy (1)')
-    ax.scatter(ratio_series.index[trade_signals(ratio_series, train_data) == -1], ratio_series[trade_signals(
-        ratio_series, train_data) == -1], color='red', marker='v', label='Sell (-1)')
-    plt.show()
-
-
-def plot_trade_signals_no_stop_loss(ratio_series, train_data):
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(ratio_series, label='label')
-    ax.scatter(ratio_series.index[trade_signals_no_stop_loss(ratio_series, train_data) == 1], ratio_series[trade_signals_no_stop_loss(
-        ratio_series, train_data) == 1], color='green', marker='^', label='Buy (1)')
-    ax.scatter(ratio_series.index[trade_signals_no_stop_loss(ratio_series, train_data) == -1],
-               ratio_series[trade_signals_no_stop_loss(ratio_series, train_data) == -1], color='red', marker='v', label='Sell (-1)')
-    plt.show()
+    return sp500
