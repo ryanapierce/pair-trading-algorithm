@@ -8,6 +8,8 @@ Question 501.1.1
 
 What is the four-stage pipeline and how does it apply to your project?
 
+    The four-stage pipeline consists of data collection, data cleaning, data analysis, and data visualization. It's a structured approach to handling data in a project. Our project follows this as we begin by identifying our data sources and pulling the data into our created database using an python library or a developed web scraper. We narrowed our data collection down to the top 100 companies in 3 sectors: healtcare, technology, and industrials. Next, we cleansed our data by dropping null records and dropping data that was not needed for our project by exlcluding them in our SQL statements. Once cleaned, our data was analyze to identify which stock pairs would be best. As we iterated through stocks to pair them with other stocks in the same industry, we tested for stationarity (mean and variance) to ensure stock pair relationships were stable and reliable. Once we identified stocks with the highest stationarity, we tested for co-integration to see if the pairs we identified moved together and could be utilized for pair trading. Lastly, we visualized the path to our findings and the profits we could of made using our method.
+
 Week 2
 
 Question 501.2.1
@@ -18,6 +20,8 @@ Question 501.2.2
 
 What sources of bias did you identify in your project?
 
+We identified look-ahead bias
+
 Question 501.2.3
 
 To what degree did you follow the “10 Rules for Creating Reproducible Results in Data Science” in your project work?
@@ -25,6 +29,8 @@ To what degree did you follow the “10 Rules for Creating Reproducible Results 
 Question 501.2.4
 
 How did you apply data cleaning principles in your project?
+
+    Data cleaning principles involve processes like handling missing data, dealing with outliers, and ensuring data consistency. We applied data cleaning principles by
 
 Week 3
 
@@ -49,6 +55,8 @@ Week 4
 Question 501.4.1
 
 How did you engage in the process of storytelling when producing your project report?
+
+We structed our report in a logical manner from start to finish to tell our project's story most effectively. We began by explaining our motivations and the foundational/technical information needed to understand our project. Next, we explained the data collection and cleaning process then the analysis portion of our project. Finally, we finished by walking out to our conclusions and results using visualizations.
 
 Question 501.4.2
 
@@ -269,6 +277,25 @@ What does database normalization mean and why is it important?
 Question 511.2.3
 
 Describe how you would use a JOIN statement to combine data from two tables.
+
+    JOIN statements are used to combine data from two or more tables into a single result set. This allows us to extract data that is related to each other and combine it in a meaningful way.
+
+    The first step in using a JOIN statement is to identify the tables we want to retrieve data from and determine the relationship between them. In this example, we will use two tables, "customers" and "orders". The "customers" table contains information about customers such as their name, address, and contact information, while the "orders" table contains information about orders placed by these customers.
+
+    To combine data from these two tables, we need to specify a column that is common between them. In this case, the "customer_id" column is present in both tables, and it serves as the primary key in the "customers" table and a foreign key in the "orders" table. This means that each order placed by a customer can be identified by their unique customer ID.
+
+    To retrieve data from both tables, we use the SELECT statement and specify the columns we want to retrieve, followed by the JOIN keyword, and then the name of the second table. We also need to specify the type of JOIN we want to use, such as INNER, LEFT, RIGHT, or FULL, depending on the type of relationship we want to establish between the two tables.
+
+    For example, to retrieve the customer's name and the order date for all orders placed, we can use the following SQL query:
+
+    SELECT customers.name, orders.order_date
+    FROM customers
+    JOIN orders
+    ON customers.customer_id = orders.customer_id;
+
+    The ON clause is used to specify the condition for joining the two tables. In this case, the values in the "customer_id" column from both tables must match in order for the data to be combined and retrieved.
+
+    Other types of JOIN statements can also be used depending on the desired result. For instance, if we want to retrieve all customers, regardless of whether they have placed an order or not, we can use the LEFT JOIN statement. This will return all customers from the "customers" table, and any matching orders from the "orders" table. If a customer has not placed an order, the corresponding values from the "orders" table will be null.
 
 Question 511.2.4
 
