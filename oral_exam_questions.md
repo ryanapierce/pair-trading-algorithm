@@ -28,15 +28,15 @@ We identified selection bias which came from only focusing on the three sectors 
 
 ### To what degree did you follow the “10 Rules for Creating Reproducible Results in Data Science” in your project work?
 
-Rule 1 - adding comments to our code as it processed and analyzed the data. 
-Rule 2 - Pandas and SQL was used for all data manipulation steps.
-Rile 3 - We archived the versions of all external programs used by documenting them in our requirements.txt file.
-Rule 4 - Used GitHub for version control
-Rule 5 - NA
-Rule 6 - NA
-Rule 7 - Raw data was stored in SQL tables or Pandas dataframes before plotting
-Rule 8 - Data and process steps were documented as comments or markdown in code.
-Rule 9 - Data and process steps were documented as comments or markdown in code.
+Rule 1 - adding comments to our code as it processed and analyzed the data.<br>
+Rule 2 - Pandas and SQL was used for all data manipulation steps.<br>
+Rile 3 - We archived the versions of all external programs used by documenting them in our requirements.txt file.<br>
+Rule 4 - Used GitHub for version control.<br>
+Rule 5 - NA<br>
+Rule 6 - NA<br>
+Rule 7 - Raw data was stored in SQL tables or Pandas dataframes before plotting.<br>
+Rule 8 - Data and process steps were documented as comments or markdown in code.<br>
+Rule 9 - Data and process steps were documented as comments or markdown in code.<br>
 Rule 10 - Public access was granted through our GitHub repo.
 
 ### Question 501.2.4
