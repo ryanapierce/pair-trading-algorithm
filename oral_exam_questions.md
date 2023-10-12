@@ -209,7 +209,7 @@ Uncertainty occured as we begun our project. We were unsure of stock pairs that 
 
 ### Question 505.1.3
 
-Provide an example of how you can use the NumPy library in the analysis of your project data.
+### Provide an example of how you can use the NumPy library in the analysis of your project data.
 
 ### Question 505.1.4
 
@@ -263,7 +263,9 @@ Provide an example of how you can use the NumPy library in the analysis of your 
 
 ### Question 505.4.3
 
-Explain what p-hacking is and why it’s a bad thing.
+### Explain what p-hacking is and why it’s a bad thing.
+
+P-hacking could lead to analysts to believing there is a strong statistical relationship, however the strength of the relationship is a result of the sample, the method used, or decisions made by the researcher.
 
 ### Question 505.4.4
 
