@@ -16,21 +16,34 @@ Question 501.2.1
 
 Explain how the law of small numbers applies to the work you did for your project.
 
+The law of small numbers is when you over generalize from small samples. This could be applied to our work as we only used a year's worth of data as well only using a small sample of shares. This made PODD/REGN seem like the best option to run our algorithm on when another stock pair made more sense.
+
 Question 501.2.2
 
 What sources of bias did you identify in your project?
 
-We identified look-ahead bias
+We identified selection bias which came from only focusing on the three sectors of industrials, healthcare, and technology. Another type of bias we identified is look-ahead bias. Look ahead bias occurs when a process relies on data that was not yet known during the time period being analyzed. This happened due to us running our algorithm on historical data.
 
 Question 501.2.3
 
 To what degree did you follow the “10 Rules for Creating Reproducible Results in Data Science” in your project work?
 
+Rule 1 - adding comments to our code as it processed and analyzed the data. 
+Rule 2 - Pandas and SQL was used for all data manipulation steps.
+Rile 3 - We archived the versions of all external programs used by documenting them in our requirements.txt file.
+Rule 4 - Used GitHub for version control
+Rule 5 - NA
+Rule 6 - NA
+Rule 7 - Raw data was stored in SQL tables or Pandas dataframes before plotting
+Rule 8 - Data and process steps were documented as comments or markdown in code.
+Rule 9 - Data and process steps were documented as comments or markdown in code.
+Rule 10 - Public access was granted through our GitHub repo.
+
 Question 501.2.4
 
 How did you apply data cleaning principles in your project?
 
-    Data cleaning principles involve processes like handling missing data, dealing with outliers, and ensuring data consistency. We applied data cleaning principles by
+    Data cleaning was completed through automation/code for auditablility, reproduciblility, and accountability. Additionally, the root cause of some our inital data problems was addressed during our cleaning process by dropping rows with null values to ensure data consistency.
 
 Week 3
 
@@ -38,17 +51,27 @@ Question 501.3.1
 
 Are there places where overfitting may have played a role in your analyses?
 
+Overfitting did not play a role in our project as we did not create a machine learning model
+
 Question 501.3.2
 
 What is cross-validation?
+
+Cross-validation is used to assess the performance of a model and to mitigate issues related to overfitting and generalization. This involves dividing a dataset into multiple training subsets and testing a model multiple times.
 
 Question 501.3.3
 
 What is p-hacking and does it apply to your project work?
 
+P-hacking occurs when a model is ran and analysts are looking for statistically significant relationships. This occured when we conducted our test for stationary (p<.05) and co-integration test (p<.05). For the purpose of our project this made sense, but these relationships may not hold if real-time data and decision making was used.
+
 Question 501.3.4
 
 What is the relationship between correlation and causation?
+
+Correlation - When two variables move together. Correlation can be measured using correlation coefficients, which asses the strength and direction of the linear relationship between two variables. Correlation does not imply causation.
+
+Causation - Causation implies a cause-and-effect relationship between two variables. Changes in one variable leads to changes in another variable. Causation implies correlation.
 
 Week 4
 
@@ -61,6 +84,8 @@ We structed our report in a logical manner from start to finish to tell our proj
 Question 501.4.2
 
 Discuss the role of uncertainty in your project.
+
+Uncertainty occured as we begun our project. We were unsure of stock pairs that would be best as we didn't know what to expect prior to conducting our stationarity analysis and co-integration analysis. Additionally, we did not know how well our algorithm would perform. This was verified with the comparison to the S&P 500 during the same time period our analysis was ran. Other uncertainty with our data was documented in our code.
 
 SIADS 502: Math Methods I
 
@@ -77,6 +102,8 @@ Describe how to calculate the derivative of a function.
 Question 502.1.3
 
 What is a vector?
+
+A vector 
 
 Question 502.1.4
 
@@ -101,6 +128,8 @@ Week 3
 Question 502.3.1
 
 What is a random variable?
+A random variable is 
+
 
 Question 502.3.2
 
@@ -113,6 +142,8 @@ What is Bayes' rule and why is it important in data science?
 Question 502.3.4
 
 What are Monte Carlo simulations?
+
+Monte Carlo simulations are 
 
 Week 4
 
