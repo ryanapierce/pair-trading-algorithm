@@ -545,91 +545,29 @@ IT is a text-based interface that allows you to interact with a computer or serv
 
 ### What are some of the more common CLI commands?
 
+Mac OS:
 ls: List files and directories in the current directory.
 cd: Change the current directory.
 pwd: Print the current working directory.
 touch: Create an empty file.
 mkdir: Create a new directory.
 rm: Remove files and directories.
-cp: Copy files and directories.
-mv: Move or rename files and directories.
-cat: Concatenate and display the content of files.
-more or less: Paginate and display the content of files.
-head and tail: Display the beginning or end of a file.
-grep: Search for patterns in files.
-find: Search for files and directories in a directory hierarchy.
-ps: Display a list of running processes.
-kill: Terminate processes.
-top or htop: Monitor system resource usage and processes.
-chmod: Change file and directory permissions.
-chown: Change file and directory ownership.
-tar: Create or extract compressed archive files.
-ssh: Connect to a remote server via Secure Shell.
-scp: Securely copy files between local and remote systems.
-rsync: Synchronize files and directories between systems.
-df and du: Display disk space usage information.
-ifconfig or ip: Configure network interfaces.
-ping and traceroute: Network diagnostic tools.
-wget or curl: Download files from the internet.
-man: Display manual pages for commands.
-history: View command history.
-alias: Create command aliases.
-date: Display or set the system date and time.
+
 Windows:
 
 dir: List files and directories in the current directory.
 cd: Change the current directory.
 echo: Display messages or set variables.
-type: Display the content of files.
-copy: Copy files and directories.
-move or ren: Move or rename files and directories.
 del: Delete files.
 mkdir: Create a new directory.
 rmdir: Remove directories.
-cls: Clear the screen.
 ipconfig: Display network configuration information.
-ping: Test network connectivity.
-tasklist: List running processes.
-taskkill: Terminate processes.
-regedit: Access the Windows Registry.
-systeminfo: Display system information.
-sfc: System File Checker for system file integrity.
-chkdsk: Check and repair disk errors.
-net: Network-related commands (e.g., net user, `
 
 ### Question 515.1.3
 
 ### What are some of the difficulties associated with using the CLI?
 
-Using the Command Line Interface (CLI) can be a powerful and efficient way to interact with a computer, but it also comes with its share of difficulties and challenges. Here are some of the common difficulties associated with using the CLI:
-
-Lack of Graphical Interface: The CLI is text-based, which means it lacks the graphical elements and user-friendly interfaces found in Graphical User Interfaces (GUIs). This can make it less intuitive, especially for users who are more accustomed to GUIs.
-
-Steep Learning Curve: CLI commands often require specific syntax and options. Learning the commands and their associated flags can be challenging for beginners, and it may take time to become proficient.
-
-Case Sensitivity: Most CLIs are case-sensitive, meaning that "command," "Command," and "COMMAND" could be treated as different commands. This can lead to errors, especially for users not accustomed to case sensitivity.
-
-Command Memorization: CLI users often need to memorize or refer to documentation to recall the correct command syntax and options. This can be time-consuming and may result in frequent lookup tasks.
-
-Lack of Discoverability: Unlike GUIs, CLIs may not provide on-screen guidance or menus to help users discover available commands and features. Users must often rely on documentation or external sources.
-
-Errors and Typos: Typing errors can result in unintended consequences or errors. A simple typo in a command can lead to a different action than what was intended.
-
-Complex Pipelines: Building complex data processing pipelines or sequences of commands can be challenging, especially when combining multiple tools and utilities.
-
-Limited Visual Feedback: The CLI typically provides textual feedback, which may not be as informative or visually appealing as GUI feedback, making it harder to interpret results.
-
-Security Risks: Running commands with administrative privileges can lead to security risks if not done carefully. In the CLI, it's essential to be cautious with commands that can affect system configuration or access sensitive data.
-
-Scripting Complexity: Writing and debugging scripts in the CLI can be complex, as scripts often need to handle variables, conditionals, loops, and error handling.
-
-Platform Differences: Different operating systems and distributions may have variations in commands, flags, and file paths, which can lead to confusion for users moving between platforms.
-
-Accessibility: The CLI can be challenging for users with certain disabilities, such as visual impairments, as it relies heavily on text-based interaction.
-
-Version Compatibility: Command-line tools and utilities may have different versions, and scripts written for one version may not be compatible with another. Managing version compatibility can be a challenge.
-
-Multilingual Challenges: For users who do not speak English as their first language, the CLI may pose language and syntax challenges, as many commands and documentation are in English.
+Lack of graphical interface, Learning curvem Case sensitivity, Command memorization.
 
 ### Question 515.1.4
 
@@ -673,39 +611,7 @@ It is less effective in complex or long-term projects. This approach has limited
 
 ### JupyterLab provides access to a debugger but it isn’t commonly used. Propose reasons why that’s the case and suggest ways in which the debugger could be changed to make it more accessible.
 
-upyterLab does provide access to a debugger, but it is true that it may not be as commonly used as other features in JupyterLab. There are several reasons for this, and there are ways to make the debugger more accessible and user-friendly:
-
-Reasons for Limited Use of the Debugger in JupyterLab:
-
-Awareness: Many users, especially beginners in data science and programming, may not be aware of the debugger's existence or how to use it effectively. They often rely on print statements or other debugging techniques.
-
-Ease of Use: Some users find the debugger's interface and functionality in JupyterLab less intuitive compared to integrated development environments (IDEs) like PyCharm or Visual Studio Code, which have more robust debugging features.
-
-Complexity: Debugging can be seen as a complex process, and users might find it daunting to learn how to set breakpoints, inspect variables, and step through code.
-
-Prior Experience: Users who have prior experience with other IDEs might prefer those environments for debugging because they are more familiar with the tools available.
-
-Ways to Make the Debugger More Accessible in JupyterLab:
-
-Improved Documentation and Tutorials: Provide clear and beginner-friendly documentation and tutorials on how to use the debugger in JupyterLab. Include step-by-step guides and examples to help users get started.
-
-Interactive Walkthroughs: Implement interactive walkthroughs or guided tours within JupyterLab that introduce users to the debugger's features and how to use them effectively.
-
-Integration with Notebooks: Make the debugger seamlessly integrated with Jupyter notebooks. Allow users to set breakpoints directly within code cells, and provide a visual indication when a breakpoint is active.
-
-Simplified User Interface: Simplify the user interface for the debugger. Make it more user-friendly and intuitive, especially for users who are not familiar with debugging concepts.
-
-Interactive Variable Inspection: Offer interactive variable inspection within the notebook environment, allowing users to view the values of variables at different points in their code with ease.
-
-Code Annotations: Allow users to add comments or annotations to their code during debugging sessions. This can help with documenting the debugging process.
-
-Integration with Popular Libraries: Ensure that the debugger integrates seamlessly with popular data science libraries like NumPy, pandas, and Matplotlib, making it a valuable tool for data scientists.
-
-Community Engagement: Encourage the JupyterLab community to share best practices for debugging in JupyterLab and create a space for users to seek help and share their experiences.
-
-Visual Debugging: Consider implementing visual debugging features, such as the ability to visualize data structures or flowcharts, which can make the debugging process more intuitive.
-
-Error Handling and Messaging: Provide clearer error messages and handling within JupyterLab to guide users when they encounter issues during debugging.
+JupyterLab debugger isn't commonly used due to lack of awareness and it's not as ease to use as IDE debuggers so users are less likely to have experience using the JupyterLab debugger. To increase accessibility there should be improved documentation and a simplified interface.
 
 ### Question 515.3.4
 
@@ -716,8 +622,6 @@ Error Handling and Messaging: Provide clearer error messages and handling within
 ### Question 515.4.1
 
 ### Why do we care about code complexity?
-
-
 
 ### Question 515.4.2
 
@@ -776,21 +680,7 @@ An open-source, distributed data processing framework designed for big data and 
 
 ### How do Resilient Distributed Datasets facilitate the use of distributed computing?
 
-Resilient Distributed Datasets (RDDs) are a fundamental data structure in Apache Spark that facilitate the use of distributed computing by providing a way to represent and manipulate data in a distributed and fault-tolerant manner. RDDs offer several key features that make them essential for distributed computing:
-
-Distribution: RDDs are distributed collections of data. They partition the data into smaller chunks, which can be distributed across multiple nodes in a cluster. This enables parallel processing of data, as different nodes can work on different parts of the dataset simultaneously.
-
-Fault Tolerance: RDDs are fault-tolerant. They automatically track the lineage of data transformations, which means that if a node fails, the lost data partitions can be recomputed based on the transformations applied to the original data. This lineage information ensures that data is not lost in the event of a node failure, making RDDs robust for distributed computing.
-
-Immutability: RDDs are immutable, which means that once data is created in an RDD, it cannot be changed. Instead, transformations applied to RDDs create new RDDs. This immutability simplifies the process of reasoning about the data flow and maintaining fault tolerance.
-
-Parallel Operations: RDDs support various high-level, parallel operations, such as map, reduce, filter, and join. These operations can be applied to the data partitions on different nodes concurrently, allowing for efficient data processing.
-
-In-Memory Computing: RDDs can be cached in memory, which significantly speeds up data processing. By persisting data in memory, Spark avoids the need to read from disk for each operation, resulting in much faster computations.
-
-Ecosystem Integration: RDDs can be seamlessly integrated with Spark's higher-level libraries and components, such as Spark SQL, Spark Streaming, and MLlib. This integration enables a wide range of data processing tasks, including batch processing, real-time streaming, machine learning, and graph processing, all using a common data structure.
-
-User-Defined Functions: RDDs allow users to define custom functions and operations that can be applied to the data. This flexibility makes them suitable for a wide range of data manipulation and transformation tasks.
+Resilient Distributed Datasets (RDDs) are a fundamental data structure in Apache Spark that facilitate the use of distributed computing by providing a way to represent and manipulate data in a distributed and fault-tolerant manner. 
 
 ### Question 516.2.3
 
